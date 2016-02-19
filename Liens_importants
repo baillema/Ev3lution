@@ -2,3 +2,5 @@ Règlement : http://persycup.imag.fr/reglement-de-la-ligue-lego-mindstorm
 Installation : https://sourceforge.net/p/lejos/wiki/Home/
 Wiki : http://nxtfr.tuxfamily.org/index.php?title=Lejos
 Librairie : http://www.lejos.org/ev3/docs/
+
+Outil de merge : git mergetool --tool=meld
