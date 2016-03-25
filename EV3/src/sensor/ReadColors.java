@@ -11,6 +11,7 @@ import lejos.robotics.SampleProvider;
 import lejos.robotics.filter.MeanFilter;
 import lejos.utility.Delay;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -71,49 +72,26 @@ public static boolean goMessage() {
 								
 			//Gestion des logs de la couleur
 			File file = new File("colors.out");
-			FileWriter fileWriter = new FileWriter(file);
+			FileReader fileReader = new FileReader(file);
 						
 			Port port = LocalEV3.get().getPort("S1");
 			EV3ColorSensor colorSensor = new EV3ColorSensor(port);
 			SampleProvider average = new MeanFilter(colorSensor.getRGBMode(), 1);
 			colorSensor.setFloodlight(Color.WHITE);
 			
-			System.out.println("Press enter to calibrate black...");
-			Button.ENTER.waitForPressAndRelease();
 			float[] black = new float[average.sampleSize()];
-			average.fetchSample(black, 0);
-			WriteInFile(black, fileWriter);
-			
-			System.out.println("Press enter to calibrate red...");
-			Button.ENTER.waitForPressAndRelease();
 			float[] red = new float[average.sampleSize()];
-			average.fetchSample(red, 0);
-			WriteInFile(red, fileWriter);		
-						
-			System.out.println("Press enter to calibrate blue...");
-			Button.ENTER.waitForPressAndRelease();
 			float[] blue = new float[average.sampleSize()];
-			average.fetchSample(blue, 0);
-			WriteInFile(blue, fileWriter);		
-			
-			System.out.println("Press enter to calibrate green...");
-			Button.ENTER.waitForPressAndRelease();
 			float[] green = new float[average.sampleSize()];
-			average.fetchSample(green, 0);
-			WriteInFile(green, fileWriter);
-
-			System.out.println("Press enter to calibrate yellow...");
-			Button.ENTER.waitForPressAndRelease();
 			float[] yellow = new float[average.sampleSize()];
-			average.fetchSample(yellow, 0);
-			WriteInFile(yellow, fileWriter);
-			
-			System.out.println("Press enter to calibrate white...");
-			Button.ENTER.waitForPressAndRelease();
 			float[] white = new float[average.sampleSize()];
-			average.fetchSample(white, 0);
-			WriteInFile(white, fileWriter);
 			
+			ReadInFile(black, fileReader);
+			ReadInFile(red, fileReader);
+			ReadInFile(blue, fileReader);
+			ReadInFile(green, fileReader);
+			ReadInFile(yellow, fileReader);
+			ReadInFile(white, fileReader);
 			
 			while (again) {
 				float[] sample = new float[average.sampleSize()];
@@ -168,8 +146,7 @@ public static boolean goMessage() {
 				if(Button.ESCAPE.isDown()) {
 					colorSensor.setFloodlight(false);
 					again = false;
-					fileWriter.flush();
-					fileWriter.close();
+					fileReader.close();
 				}
 			}
 				
@@ -186,15 +163,16 @@ public static boolean goMessage() {
 				Math.pow(v1[2] - v2[2], 2.0));
 	}
 	
-	public static void WriteInFile(float[] color, FileWriter f) throws IOException
+	public static void ReadInFile(float[] color, FileReader f) throws IOException
 	{
 		for(int i = 0; i<color.length; i++)
 		{
-			f.write(Float.toString(color[i]));
-			f.write(" ");
+			color[i] = f.read();
+			//Espace
+			f.read();
 		}
-		
-		f.write("\n");
+		//saut de ligne
+		f.read();
+		f.
 	}
-
 }
