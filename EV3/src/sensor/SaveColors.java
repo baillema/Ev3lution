@@ -191,7 +191,7 @@ public static boolean goMessage() {
 	{
 		for(int i = 0; i<color.length; i++)
 		{
-			f.write((int) color[i]);
+			f.write(Float.toString(color[i]));
 			f.write(" ");
 		}
 		
