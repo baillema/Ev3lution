@@ -1,3 +1,5 @@
+package sensor;
+
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.Font;
@@ -9,8 +11,10 @@ import lejos.robotics.SampleProvider;
 import lejos.robotics.filter.MeanFilter;
 import lejos.utility.Delay;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
-public class TestColor {
+public class SaveColors {
 
 public static boolean goMessage() {
 		
@@ -25,7 +29,7 @@ public static boolean goMessage() {
 		g.drawString("To run the ", 2, 60, 0);
 		g.drawString("code one needs an EV3 ", 2, 70, 0);
 		g.drawString("brick with a EV3 color sensor", 2, 80, 0); 
-		g.drawString("attached to port 4.", 2, 90, 0);
+		g.drawString("attached to port 3.", 2, 90, 0);
 		  
 		// Quit GUI button:
 		g.setFont(Font.getSmallFont()); // can also get specific size using Font.getFont()
@@ -66,10 +70,10 @@ public static boolean goMessage() {
 			if (!goMessage()) System.exit(0);
 								
 			//Gestion des logs de la couleur
-			File file = new File("colors.ev3");
+			File file = new File("colors.out");
 			FileWriter fileWriter = new FileWriter(file);
 						
-			Port port = LocalEV3.get().getPort("S3");
+			Port port = LocalEV3.get().getPort("S1");
 			EV3ColorSensor colorSensor = new EV3ColorSensor(port);
 			SampleProvider average = new MeanFilter(colorSensor.getRGBMode(), 1);
 			colorSensor.setFloodlight(Color.WHITE);
@@ -78,37 +82,37 @@ public static boolean goMessage() {
 			Button.ENTER.waitForPressAndRelease();
 			float[] black = new float[average.sampleSize()];
 			average.fetchSample(black, 0);
-			WriteInFile(black, FileWriter);
+			WriteInFile(black, fileWriter);
 			System.out.println("Black calibrated");
 			
 			System.out.println("Press enter to calibrate red...");
 			Button.ENTER.waitForPressAndRelease();
 			float[] red = new float[average.sampleSize()];
-			WriteInFile(red, FileWriter);
+			WriteInFile(red, fileWriter);
 			average.fetchSample(red, 0);
 						
 			System.out.println("Press enter to calibrate blue...");
 			Button.ENTER.waitForPressAndRelease();
 			float[] blue = new float[average.sampleSize()];
-			WriteInFile(blue, FileWriter);
+			WriteInFile(blue, fileWriter);
 			average.fetchSample(blue, 0);
 			
 			System.out.println("Press enter to calibrate green...");
 			Button.ENTER.waitForPressAndRelease();
 			float[] green = new float[average.sampleSize()];
-			WriteInFile(green, FileWriter);
+			WriteInFile(green, fileWriter);
 			average.fetchSample(green, 0);
 
 			System.out.println("Press enter to calibrate yellow...");
 			Button.ENTER.waitForPressAndRelease();
 			float[] yellow = new float[average.sampleSize()];
-			WriteInFile(yellow, FileWriter);
+			WriteInFile(yellow, fileWriter);
 			average.fetchSample(yellow, 0);
 			
 			System.out.println("Press enter to calibrate white...");
 			Button.ENTER.waitForPressAndRelease();
 			float[] white = new float[average.sampleSize()];
-			WriteInFile(white, FileWriter);
+			WriteInFile(white, fileWriter);
 			average.fetchSample(white, 0);
 			
 			
@@ -120,37 +124,37 @@ public static boolean goMessage() {
 				double minscal = Double.MAX_VALUE;
 				String color = "";
 				
-				double scalaire = TestColor.scalaire(sample, blue);
+				double scalaire = SaveColors.scalaire(sample, blue);
 				if (scalaire < minscal) {
 					minscal = scalaire;
 					color = "blue";
 				}
 				
-				scalaire = TestColor.scalaire(sample, red);
+				scalaire = SaveColors.scalaire(sample, red);
 				if (scalaire < minscal) {
 					minscal = scalaire;
 					color = "red";
 				}
 				
-				scalaire = TestColor.scalaire(sample, green);
+				scalaire = SaveColors.scalaire(sample, green);
 				if (scalaire < minscal) {
 					minscal = scalaire;
 					color = "green";
 				}
 				
-				scalaire = TestColor.scalaire(sample, black);
+				scalaire = SaveColors.scalaire(sample, black);
 				if (scalaire < minscal) {
 					minscal = scalaire;
 					color = "black";
 				}
 				
-				scalaire = TestColor.scalaire(sample, yellow);
+				scalaire = SaveColors.scalaire(sample, yellow);
 				if (scalaire < minscal) {
 					minscal = scalaire;
 					color = "yellow";
 				}
 				
-				scalaire = TestColor.scalaire(sample, white);
+				scalaire = SaveColors.scalaire(sample, white);
 				if (scalaire < minscal) {
 					minscal = scalaire;
 					color = "white";
@@ -167,7 +171,6 @@ public static boolean goMessage() {
 					again = false;
 					fileWriter.flush();
 					fileWriter.close();
-					file.close();
 				}
 			}
 				
@@ -184,11 +187,11 @@ public static boolean goMessage() {
 				Math.pow(v1[2] - v2[2], 2.0));
 	}
 	
-	public static double WriteInFile(float[] color, FileWriter f)
+	public static void WriteInFile(float[] color, FileWriter f) throws IOException
 	{
 		for(int i = 0; i<color.length; i++)
 		{
-			f.write(color[i].toString);
+			f.write((int) color[i]);
 			f.write(" ");
 		}
 		
