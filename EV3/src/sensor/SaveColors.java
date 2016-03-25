@@ -83,37 +83,36 @@ public static boolean goMessage() {
 			float[] black = new float[average.sampleSize()];
 			average.fetchSample(black, 0);
 			WriteInFile(black, fileWriter);
-			System.out.println("Black calibrated");
 			
 			System.out.println("Press enter to calibrate red...");
 			Button.ENTER.waitForPressAndRelease();
 			float[] red = new float[average.sampleSize()];
-			WriteInFile(red, fileWriter);
 			average.fetchSample(red, 0);
+			WriteInFile(red, fileWriter);		
 						
 			System.out.println("Press enter to calibrate blue...");
 			Button.ENTER.waitForPressAndRelease();
 			float[] blue = new float[average.sampleSize()];
-			WriteInFile(blue, fileWriter);
 			average.fetchSample(blue, 0);
+			WriteInFile(blue, fileWriter);		
 			
 			System.out.println("Press enter to calibrate green...");
 			Button.ENTER.waitForPressAndRelease();
 			float[] green = new float[average.sampleSize()];
-			WriteInFile(green, fileWriter);
 			average.fetchSample(green, 0);
+			WriteInFile(green, fileWriter);
 
 			System.out.println("Press enter to calibrate yellow...");
 			Button.ENTER.waitForPressAndRelease();
 			float[] yellow = new float[average.sampleSize()];
-			WriteInFile(yellow, fileWriter);
 			average.fetchSample(yellow, 0);
+			WriteInFile(yellow, fileWriter);
 			
 			System.out.println("Press enter to calibrate white...");
 			Button.ENTER.waitForPressAndRelease();
 			float[] white = new float[average.sampleSize()];
-			WriteInFile(white, fileWriter);
 			average.fetchSample(white, 0);
+			WriteInFile(white, fileWriter);
 			
 			
 			while (again) {
