@@ -1,3 +1,5 @@
+package wifi;
+
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
@@ -33,7 +35,7 @@ public class EV3Client {
 				packet.setLength(buffer.length);
 				packet.setData(buffer);
 			}
-			dsocket.close();
+			//dsocket.close();
 		}
 
 		catch (Exception e) {

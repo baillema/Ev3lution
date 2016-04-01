@@ -15,7 +15,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class SaveColors {
+public class ReadColors {
 
 public static boolean goMessage() {
 		
