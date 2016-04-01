@@ -10,7 +10,10 @@ import lejos.robotics.Color;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.filter.MeanFilter;
 import lejos.utility.Delay;
+
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -97,7 +100,7 @@ public static boolean goMessage() {
 			
 			//Gestion des logs de la couleur
 			File file2 = new File("colors2.out");
-			FileWriter fileWriter2 = new FileWriter(file2);
+			FileWriter fileWriter = new FileWriter(file2);
 			
 			WriteInFile(black, fileWriter);
 			WriteInFile(red, fileWriter);
@@ -159,7 +162,8 @@ public static boolean goMessage() {
 				if(Button.ESCAPE.isDown()) {
 					colorSensor.setFloodlight(false);
 					again = false;
-					fileReader.close();
+					input.close();
+					fileWriter.close();
 				}
 			}
 				
