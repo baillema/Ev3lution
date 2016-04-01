@@ -72,7 +72,9 @@ public static boolean goMessage() {
 								
 			//Gestion des logs de la couleur
 			File file = new File("colors.out");
-			FileReader fileReader = new FileReader(file);
+		
+			FileInputStream input = new FileInputStream(file);
+ 			DataInputStream data = new DataInputStream(input);
 						
 			Port port = LocalEV3.get().getPort("S1");
 			EV3ColorSensor colorSensor = new EV3ColorSensor(port);
@@ -86,12 +88,12 @@ public static boolean goMessage() {
 			float[] yellow = new float[average.sampleSize()];
 			float[] white = new float[average.sampleSize()];
 			
-			ReadInFile(black, fileReader);
-			ReadInFile(red, fileReader);
-			ReadInFile(blue, fileReader);
-			ReadInFile(green, fileReader);
-			ReadInFile(yellow, fileReader);
-			ReadInFile(white, fileReader);
+			ReadInFile(black, data);
+			ReadInFile(red, data);
+			ReadInFile(blue, data);
+			ReadInFile(green, data);
+			ReadInFile(yellow, data);
+			ReadInFile(white, data);
 			
 			System.out.println(black[0]+" "+black[1]+" "+black[2]);
 			System.out.println(red[0]+" "+red[1]+" "+red[2]);
@@ -167,15 +169,11 @@ public static boolean goMessage() {
 				Math.pow(v1[2] - v2[2], 2.0));
 	}
 	
-	public static void ReadInFile(float[] color, FileReader f) throws IOException
+	public static void ReadInFile(float[] color, DataInputStream f) throws IOException
 	{
 		for(int i = 0; i<color.length; i++)
 		{
-			color[i] = f.read();
-			//Espace
-			f.read();
+			color[i] = f.readFloat();
 		}
-		//saut de ligne
-		f.read();
 	}
 }
