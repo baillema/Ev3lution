@@ -83,14 +83,12 @@ public static boolean goMessage() {
 			float[] black = new float[average.sampleSize()];
 			average.fetchSample(black, 0);
 			WriteInFile(black, fileWriter);
-			System.out.println(black[0]+" "+black[1]+" "+black[2]);
 			
 			System.out.println("Press enter to calibrate red...");
 			Button.ENTER.waitForPressAndRelease();
 			float[] red = new float[average.sampleSize()];
 			average.fetchSample(red, 0);
 			WriteInFile(red, fileWriter);
-			System.out.println(red[0]+" "+red[1]+" "+red[2]);	
 						
 			System.out.println("Press enter to calibrate blue...");
 			Button.ENTER.waitForPressAndRelease();

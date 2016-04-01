@@ -93,6 +93,10 @@ public static boolean goMessage() {
 			ReadInFile(yellow, fileReader);
 			ReadInFile(white, fileReader);
 			
+			System.out.println(black[0]+" "+black[1]+" "+black[2]);
+			System.out.println(red[0]+" "+red[1]+" "+red[2]);
+			System.out.println(blue[0]+" "+blue[1]+" "+blue[2]);
+			
 			while (again) {
 				float[] sample = new float[average.sampleSize()];
 				System.out.println("\nPress enter to detect a color...");
@@ -173,6 +177,5 @@ public static boolean goMessage() {
 		}
 		//saut de ligne
 		f.read();
-		f.
 	}
 }
