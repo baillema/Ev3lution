@@ -95,9 +95,16 @@ public static boolean goMessage() {
 			ReadInFile(yellow, data);
 			ReadInFile(white, data);
 			
-			System.out.println(black[0]+" "+black[1]+" "+black[2]);
-			System.out.println(red[0]+" "+red[1]+" "+red[2]);
-			System.out.println(blue[0]+" "+blue[1]+" "+blue[2]);
+			//Gestion des logs de la couleur
+			File file2 = new File("colors2.out");
+			FileWriter fileWriter2 = new FileWriter(file2);
+			
+			WriteInFile(black, fileWriter);
+			WriteInFile(red, fileWriter);
+			WriteInFile(blue, fileWriter);
+			WriteInFile(green, fileWriter);
+			WriteInFile(yellow, fileWriter);
+			WriteInFile(white, fileWriter);
 			
 			while (again) {
 				float[] sample = new float[average.sampleSize()];
@@ -175,5 +182,16 @@ public static boolean goMessage() {
 		{
 			color[i] = f.readFloat();
 		}
+	}
+	
+		public static void WriteInFile(float[] color, FileWriter f) throws IOException
+	{
+		for(int i = 0; i<color.length; i++)
+		{
+			f.write(Float.toString(color[i]));
+			f.write(" ");
+		}
+		
+		f.write("\n");
 	}
 }
