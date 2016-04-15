@@ -1,4 +1,4 @@
-package sensor;
+package Sensor;
 
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
@@ -10,6 +10,7 @@ import lejos.robotics.Color;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.filter.MeanFilter;
 import lejos.utility.Delay;
+
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -89,18 +90,12 @@ public static boolean goMessage() {
 			float[] green = new float[average.sampleSize()];
 			float[] yellow = new float[average.sampleSize()];
 			float[] white = new float[average.sampleSize()];
-			char temp = new char;
 			
 			ReadInFile(black, data);
-			ReadInFile(temp, data);
 			ReadInFile(red, data);
-			ReadInFile(temp, data);
 			ReadInFile(blue, data);
-			ReadInFile(temp, data);
 			ReadInFile(green, data);
-			ReadInFile(temp, data);
 			ReadInFile(yellow, data);
-			ReadInFile(temp, data);
 			ReadInFile(white, data);
 			
 			//Gestion des logs de la couleur
@@ -187,17 +182,11 @@ public static boolean goMessage() {
 	
 	public static void ReadInFile(float[] color, DataInputStream f) throws IOException
 	{
+		char temp;
 		for(int i = 0; i<color.length; i++)
 		{
 			color[i] = f.readFloat();
-		}
-	}
-	
-	public static void ReadInFile(char line, DataInputStream f) throws IOException
-	{
-		for(int i = 0; i<color.length; i++)
-		{
-			line = f.readChar();
+			temp=f.readChar();
 		}
 	}
 	
