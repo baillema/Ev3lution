@@ -193,6 +193,14 @@ public static boolean goMessage() {
 		}
 	}
 	
+	public static void ReadInFile(char line, DataInputStream f) throws IOException
+	{
+		for(int i = 0; i<color.length; i++)
+		{
+			line = f.readChar();
+		}
+	}
+	
 		public static void WriteInFile(float[] color, FileWriter f) throws IOException
 	{
 		for(int i = 0; i<color.length; i++)
