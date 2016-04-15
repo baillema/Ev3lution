@@ -1,4 +1,4 @@
-package Sensor;
+package sensor;
 
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
@@ -182,11 +182,9 @@ public static boolean goMessage() {
 	
 	public static void ReadInFile(float[] color, DataInputStream f) throws IOException
 	{
-		char temp;
 		for(int i = 0; i<color.length; i++)
 		{
 			color[i] = f.readFloat();
-			temp=f.readChar();
 		}
 	}
 	
