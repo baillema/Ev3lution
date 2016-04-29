@@ -5,15 +5,16 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
 import lejos.hardware.Button;
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.motor.Motor;
+import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.SensorPort;
 import lejos.utility.Delay;
-import Moving.MyChassis;
 import Sensor.TouchSensor;
 
 public class Camera {
 
-	//Etat courent de l'automate
+	//Etat courrant de l'automate
 	public enum State {
         WAIT,
         SEARCH,
@@ -27,19 +28,22 @@ public class Camera {
     static int current_orientation = 0;
 	static State current_state = State.WAIT;
     static TouchSensor uTouch = new TouchSensor(SensorPort.S3);
-    
+  
     //Moteur
-    MyChassis chass = new MyChassis();
+    static int SPEED = 500;
     
     //Position courante du robot
     static Point robot = new Point();
     
     //Position courante du palet en vue
     static Point palet = new Point();
+    
+    //Objectif adverse
+    static Point obj = new Point();
        
     public static void main(String[] args) {	
 		try 
-		{
+		{			
 			while(current_state != State.RETURN)
 			{
 				switch (current_state) {
@@ -47,30 +51,40 @@ public class Camera {
 		        		//Attendre que l'on presse
 		        		System.out.println("Push the central button to START");
 						Button.ENTER.waitForPress();
-						
+										
 						//open_arms();
 						robot = search_position();
-						current_state = State.SEARCH;	
+						
+						obj = find_goal();
+						
+						forward_till_touch();
+						
+						//System.out.println("Je suis en X : "+ robot.x + " Y : "+ robot.y);
+						//System.out.println("Objectif en X : "+ obj.x + " Y : "+ obj.y);
+						
+						current_state = State.GOAL;	
 		        		break;
 		        		
 		        	case SEARCH:
 		        		//Cherche le palet le plus proche via les positions
 		        		palet = search_palet();
 		        		
-		        		System.out.println("Je suis en X : "+ robot.x + " Y : "+robot.y);
+		        		System.out.println("Palet proche : "+ palet.x + " Y : "+ palet.y);
 		        		
 		        		//S'il n'y a plus que les deux robots sur le plateau
 		        		//if(palet.x<0 && palet.y <0) current_state = State.RETURN;
-		        		Button.ENTER.waitForPress();
+		        		
+		        		//else current_state = State.DETECT;
+		        		
+		       	 		Button.ENTER.waitForPress();
 		        		current_state = State.RETURN;
+		        		
 		                break;
 		              		                
 		        	case DETECT: 
 		        		//Determiner le mouvement à effectuer pour atteindre le but
-		        		forward_till_touch();
-		        		
-		        		//En cas de mouvement du palet que l'on attaque, changement de cible
-		        		
+		        		travel_to_palet();
+		        	
 		        		current_state = State.CATCH;
 		        		
 		        		break;
@@ -78,21 +92,14 @@ public class Camera {
 		        	case CATCH:  
 		        		//Fermer les pinces
 		        		close_arms();
-		        		current_state = State.RETURN;
-		        		//Demi-tour (rotate clockwise)
-		        		//Avancer tant que l'on ne trouve pas le couleur blanc
-		        			//Si on trouve le blanc
-		        				//current_state = State.RETURN;
+		        		current_state = State.GOAL;
 		                break;
 		                
 		        	case GOAL:
-		        		
+		        		travel_from_to_obj();
+		        		backward(2);
+		        		current_state = State.RETURN;
 		        		break;
-		        		
-		       	 	case RETURN:
-		       	 		System.out.println("Push the central button to START");
-		       	 		Button.ENTER.waitForPress();
-		                break;
 		
 		        default: current_state = State.RETURN;
 		                break;
@@ -108,6 +115,129 @@ public class Camera {
 		}
 	}
 
+	private static Point maj_position() {
+		Point[] tab = new Point[15];
+		Point res = new Point();
+		
+		init_tab_point(tab);
+		
+		tab = receive_socket();
+		
+		
+		
+		for(int i = 0; i<tab.length; i++)
+		{
+			if(robot.x-3 < tab[i].x && tab[i].x < robot.x+3)
+			{
+				if(robot.y-3 < tab[i].y && tab[i].y < robot.y+3)
+				{
+					//Ce point n'a pas bougé
+					//System.out.println("Points initial " + i + " X " + tab[i].x + " Y " + tab[i].y);
+
+					//System.out.println("Points move" + i + " X " + tab2[i].x + " Y " + tab2[i].y);
+				}
+				else
+				{
+					//System.out.println("Difference trouvee.");
+					res = new Point(tab[i].x, tab[i].y);
+				}
+			}
+		}
+		
+		return res;
+	}
+
+	private static void travel_from_to_obj() {
+		if(current_orientation!=0)
+		{
+			if(current_orientation<0)
+			{
+				rotate(current_orientation);
+			}
+			else
+			{
+				rotate(-current_orientation);
+			}
+		}
+		
+		forward_distance(Math.abs(robot.y-obj.y));
+	}
+
+	private static Point find_goal() {
+		Point res = new Point();
+		
+		if(robot.y>150)
+		{
+			//Est en 200
+			res.x = 100;
+			res.y = 0;
+		}
+		
+		else
+		{
+			//Est en 0
+			res.x = 100;
+			res.y = 200;
+		}
+		
+		return res;
+	}
+
+	private static void travel_to_palet() 
+	{
+		int diffX = robot.x-palet.x;
+		int diffY = robot.y-palet.y;
+		
+		if(Math.abs(diffX)<3)
+		{
+			//Sur la même ligne X
+			if(diffX<0)
+			{
+				//Est derrière, demi tour
+				rotate(180);
+				current_orientation=(current_orientation+180)%360;
+			}
+			
+			forward_distance(diffX);
+		}
+		
+		if(Math.abs(diffY)<3)
+		{
+			//Sur la même ligne Y
+			//Dépend de l'orientation
+			//TODO trouver le modèle
+			if(diffY<0)
+			{
+				//A gauche
+			}
+			
+			else
+			{
+				//A droite
+			}
+		}
+	}
+
+	private static void forward_distance(int diffX) {
+		Motor.C.setSpeed(0);
+		Motor.B.setSpeed(0);
+		
+		Motor.C.forward();
+		Motor.B.forward();
+		
+		for(int j=0; j<SPEED;j+=(SPEED/10))
+		{
+			Motor.C.setSpeed(j);
+			Motor.B.setSpeed(j);
+			Delay.msDelay(1);
+		}
+		
+		Delay.msDelay(diffX*1000);
+		
+		stop();
+		
+	}
+
 	private static Point search_position()
 	{
 		Point[] tab = new Point[15];
@@ -119,7 +249,7 @@ public class Camera {
 		Point res = new Point();
 		
 		tab = receive_socket();
-		forward(5);
+		forward(1);
 		tab2 = receive_socket();
 		
 		res = compare_point(tab, tab2);
@@ -128,8 +258,6 @@ public class Camera {
 	}
 
 	private static Point compare_point(Point[] tab, Point[] tab2) {
-		
-		// TODO Auto-generated method stub
 		Point res = new Point();
 		for (int i = 0; i<tab.length && i<tab2.length; i++)
 		{
@@ -138,13 +266,13 @@ public class Camera {
 				if(tab2[i].y-3 < tab[i].y && tab[i].y < tab2[i].y+3)
 				{
 					//Ce point n'a pas bougé
-					System.out.println("Points initial " + i + " X " + tab[i].x + " Y " + tab[i].y);
+					//System.out.println("Points initial " + i + " X " + tab[i].x + " Y " + tab[i].y);
 
-					System.out.println("Points move" + i + " X " + tab2[i].x + " Y " + tab2[i].y);
+					//System.out.println("Points move" + i + " X " + tab2[i].x + " Y " + tab2[i].y);
 				}
 				else
 				{
-					System.out.println("Difference trouvee.");
+					//System.out.println("Difference trouvee.");
 					res = new Point(tab2[i].x, tab2[i].y);
 				}
 			}
@@ -202,7 +330,6 @@ public class Camera {
 	}
 
 	private static void init_tab_point(Point[] tab) {
-		// TODO Auto-generated method stub
 		for(int i = 0; i<tab.length; i++) tab[i] = new Point();
 	}
 
@@ -215,30 +342,40 @@ public class Camera {
 		
 		res = receive_socket();
 		
-		min = new Point(Integer.MAX_VALUE, Integer.MAX_VALUE);
+		min = new Point(300, 300);
 		
 		//TODO A tester
 		for(int i = 0; i<res.length; i++)
 		{
-			if(Math.abs(robot.x-res[i].x)+Math.abs(robot.y-res[i].y)<Math.abs(robot.x-min.x)+Math.abs(robot.y-min.y))
+			int diff = Math.abs(res[i].x-robot.x)+Math.abs(res[i].y-robot.y);
+			
+			int diffMin = Math.abs(min.x-robot.x)+Math.abs(min.y-robot.y);
+			
+			//System.out.println("Diff "+ diff+ " DiffMin"+diffMin);
+			
+			if(diff<3)
 			{
-				//Test si ce n'est pas la position du robot
-				if(Math.abs(robot.x-res[i].x)+Math.abs(robot.y-res[i].y)<3)
-				{
-					//C'est le robot
-				}
-				else
-				{
-					min = res[i];
-				}
+				//Detection de sa propre position
 			}
+			
+			else if((diff)<(diffMin))
+			{
+				min = res[i];
+			}
+
+		}
+		
+		//S'il ne reste pas de palet en jeu
+		//TODO Faire un test pour savoir s'il reste un robot autre que le notre
+		if(min.x==300)
+		{
+			min = new Point(-1,-1);
 		}
 		
 		return min;
 	}
 
 	private static void open_arms() {
-		// TODO Auto-generated method stub
 		Motor.A.setSpeed(1000);
 		Motor.A.forward();
 		Delay.msDelay(550);
@@ -246,7 +383,6 @@ public class Camera {
 	}
 
 	private static void close_arms() {
-		// TODO Auto-generated method stub
 		Motor.A.setSpeed(1000);
 		Motor.A.backward();
 		Delay.msDelay(550);
@@ -254,68 +390,91 @@ public class Camera {
 	}
 
 	private static void forward(int i) {
-		// TODO Auto-generated method stub
-		Motor.C.setSpeed(500);
-		Motor.B.setSpeed(500);
-
+		Motor.C.setSpeed(0);
+		Motor.B.setSpeed(0);
+		
 		Motor.C.forward();
 		Motor.B.forward();
 		
-		Delay.msDelay(i*1000);
+		for(int j=0; j<SPEED;j+=(SPEED/10))
+		{
+			Motor.C.setSpeed(j);
+			Motor.B.setSpeed(j);
+			maj_position();
+		}
 		
-		Motor.B.stop();
-    	Motor.C.stop();
+		int delay = (i*1000);
+		
+		for(int j=0; j<delay; j+=(delay/10))
+		{
+			Delay.msDelay(delay/10);
+			maj_position();
+		}
+		
+		stop();
 	}
 	
-	private static void backward(int i) {
-		// TODO Auto-generated method stub
-		Motor.C.setSpeed(500);
-		Motor.B.setSpeed(500);
+	private static void stop() {
+		for(int j=0; j<SPEED;j+=(SPEED/10))
+		{
+			Motor.C.setSpeed(SPEED-j);
+			Motor.B.setSpeed(SPEED-j);
+			Delay.msDelay(1);
+		}
+	}
 
+	private static void backward(int i) {
+		Motor.C.setSpeed(0);
+		Motor.B.setSpeed(0);
+		
 		Motor.C.backward();
 		Motor.B.backward();
 		
-		Delay.msDelay(i*1000);
+		for(int j=0; j<SPEED;j+=(SPEED/10))
+		{
+			Motor.C.setSpeed(j);
+			Motor.B.setSpeed(j);
+			robot = maj_position();
+		}
 		
-		Motor.B.stop();
-    	Motor.C.stop();
+		int delay = (i*1000);
+		
+		for(int j=0; j<delay; j+=(delay/10))
+		{
+			Delay.msDelay(delay/10);
+			robot = maj_position();
+		}
+		
+		stop();
 	}
 	
 	private static void forward_till_touch() {
-		// TODO Auto-generated method stub
-		Motor.C.setSpeed(500);
-		Motor.B.setSpeed(500);
-		while(!uTouch.isPressed())
-		{
-			Motor.C.forward();
-			Motor.B.forward();
-		}
-		
-		Motor.B.stop();
-    	Motor.C.stop();
-	}
-
-	private static void rotate_right(int t) {
-		// TODO Auto-generated method stub
-		Motor.B.setSpeed(200);
-		Motor.C.setSpeed(200);
-		
-		Motor.B.forward();
-        Motor.C.backward();
-        Delay.msDelay(t);
-        Motor.C.stop();
-        Motor.B.stop();
-	}
-	
-	private static void rotate_left(int t) {
-		// TODO Auto-generated method stub
-		Motor.B.setSpeed(200);
-		Motor.C.setSpeed(200);
+		Motor.C.setSpeed(0);
+		Motor.B.setSpeed(0);
 		
 		Motor.C.forward();
-        Motor.B.backward();
-        Delay.msDelay(t);
-        Motor.C.stop();
-        Motor.B.stop();
+		Motor.B.forward();
+		
+		for(int j=0; j<SPEED;j+=(SPEED/10))
+		{
+			Motor.C.setSpeed(j);
+			Motor.B.setSpeed(j);
+			maj_position();
+		}
+				
+		while(!uTouch.isPressed()){maj_position();}
+		
+		close_arms();
+
+    	stop();
+	}
+
+	private static void rotate(int t) {
+		//Motor.C.rotate(t);
+		Motor.B.rotate(t);
+		
+		current_orientation = current_orientation+t;
+		
+		stop();
 	}
 }
